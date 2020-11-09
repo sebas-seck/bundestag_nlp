@@ -1,0 +1,3 @@
+[submodule "plpr-scraper"]
+	path = plpr-scraper
+	url = https://github.com/sebas-seck/plpr-scraper.git
