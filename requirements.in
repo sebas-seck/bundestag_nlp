@@ -1,0 +1,12 @@
+black
+de_core_news_lg
+de_core_news_sm
+imgkit
+jupytext
+nltk
+notebook
+numpy
+pandas
+pre-commit
+spacy
+textblob-de
