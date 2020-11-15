@@ -1,12 +1,16 @@
 black
 de_core_news_lg
 de_core_news_sm
+gensim
 imgkit
+ipython==7.10.0
 jupytext
 nltk
 notebook
 numpy
 pandas
+pandas-profiling[notebook]
 pre-commit
+pyLDAvis
 spacy
 textblob-de
