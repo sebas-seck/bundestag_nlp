@@ -23,20 +23,20 @@
 
 # %% [markdown]
 # ## Setup
-
 # %%
-from gensim.models import Phrases
-from gensim.models.word2vec import LineSentence
 import codecs
-from pathlib import Path
 import time
-import spacy
+from pathlib import Path
+
 import _pickle as pickle
-from gensim.corpora import Dictionary, MmCorpus
-from gensim.models.ldamulticore import LdaMulticore
 import pyLDAvis
 import pyLDAvis.gensim
-from IPython.core.display import display, HTML
+import spacy
+from gensim.corpora import Dictionary, MmCorpus
+from gensim.models import Phrases
+from gensim.models.ldamulticore import LdaMulticore
+from gensim.models.word2vec import LineSentence
+from IPython.core.display import HTML, display
 
 # %%
 # Use the full browser window width
@@ -257,7 +257,7 @@ print(
 # %%time
 # short running
 THRESH_BELOW = 2
-THRESH_ABOVE = 0.1
+THRESH_ABOVE = 0.01
 thres_suffix = f"TB{str(THRESH_BELOW)}_TA{str(THRESH_ABOVE)}".replace(".", "")
 trigram_dictionary_filepath = f"data/tm/{prefix}trigram_dict_all_{thres_suffix}.dict"
 if Path(trigram_dictionary_filepath).exists():
@@ -384,6 +384,9 @@ with open(LDAvis_data_filepath, "rb") as f:
 
 pyLDAvis.display(LDAvis_prepared)
 
+
+# %% [markdown]
+# On Github, the notebook is statically rendered, the LDA visualization is interactive. View with nbviewer instead: [Jupyter nbviewer](https://nbviewer.jupyter.org/github/sebas-seck/bundestag_nlp/blob/main/nb_03_topic_modelling.ipynb#topic=0&lambda=1&term=)
 
 # %%
 def lda_description(review_text, min_topic_freq=0.05):
