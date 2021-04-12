@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.11.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -15,7 +15,7 @@
 # ---
 
 # %% [markdown]
-# # Bundestag Topic Modelling
+# # Topic Modeling
 # Eyeballing parliamentary minutes for two election periods using topic modelling is performed in this notebook. The initial creation of n-grams may take a long time!
 # - Language model from spaCy
 # - Corpus and LDA with gensim
@@ -23,31 +23,26 @@
 
 # %% [markdown]
 # ## Setup
+
 # %%
 import codecs
-import time
 from pathlib import Path
 
 import _pickle as pickle
 import pyLDAvis
-import pyLDAvis.gensim
+import pyLDAvis.gensim_models
 import spacy
 from gensim.corpora import Dictionary, MmCorpus
 from gensim.models import Phrases
 from gensim.models.ldamulticore import LdaMulticore
 from gensim.models.word2vec import LineSentence
-from IPython.core.display import HTML, display
-
-# %%
-# Use the full browser window width
-display(HTML("<style>.container { width:100% !important; }</style>"))
 
 # %%
 # Create needed subfolder in 'data' and subfolder 'out'
 Path("data/tm").mkdir(parents=True, exist_ok=True)
 Path("out").mkdir(parents=True, exist_ok=True)
 
-# %% [markdown]
+# %% [markdown] tags=[]
 # #### Configuration
 # - Models are large in size and quick to compute -> save only when re-running the notebook frequently
 # - SpaCy provides a small and a large language model for German
@@ -62,8 +57,6 @@ language_model = "de_core_news_lg"
 gerNLP = spacy.load(language_model)
 # speeches_txt_filepath = 'data/plpr_alltext_a.txt'
 speeches_txt_filepath = "data/plpr_alltext_b.txt"
-
-# %%
 prefix = f"{speeches_txt_filepath[-5:-4]}_{language_model[-2:]}_"  # text file option (a or b) and language model (small sm or large lg)
 prefix
 
@@ -123,7 +116,6 @@ def lemmatized_sentence_corpus_to_file(input_file, output_file):
 preview(speeches_txt_filepath)
 
 # %%
-# %%time
 # long running
 unigram_sentences_filepath = f"data/tm/{prefix}unigram_sent_all.txt"
 
@@ -156,8 +148,6 @@ else:
         bigram_model.save(bigram_model_filepath)
 
 # %%
-# %%time
-# short running
 bigram_sentences_filepath = f"data/tm/{prefix}bigram_sent_all.txt"
 if Path(bigram_sentences_filepath).exists():
     print(f"Bigram sentences available at {bigram_sentences_filepath}")
@@ -189,7 +179,6 @@ else:
         trigram_model.save(trigram_model_filepath)
 
 # %%
-# %%time
 # short running
 trigram_sentences_filepath = f"data/tm/{prefix}trigram_sent_all.txt"
 if Path(trigram_sentences_filepath).exists():
@@ -249,13 +238,10 @@ print(
 # %% [markdown]
 # ## Latent Dirichlet Allocation
 # In this section, the text is transformed into a corpus, which is the collection of documents over which topics are discovered using LDA. As a first intermediate step, the speech documents are represented with a dictionary, where n-grams are keys and occurances counts within speech documents are the respective values.
-
-# %% [markdown]
+#
 # The parameters `THRES_BELOW` AND `THRES_ABOVE` define, which keywords can define a topic. `THRES_BELOW` is the minimum number of documents, in which a keyword needs to occur to be able to define a topic. `THRES_ABOVE` is a relative value, it defines the maximum fraction of documents, which may contain a keyword for the keyword to be able to define topics. Accordingly, keywords which are too common, cannot define a topic, and special terminology of a single speech does not, either.
 
 # %%
-# %%time
-# short running
 THRESH_BELOW = 2
 THRESH_ABOVE = 0.01
 thres_suffix = f"TB{str(THRESH_BELOW)}_TA{str(THRESH_ABOVE)}".replace(".", "")
@@ -280,7 +266,7 @@ else:
     trigram_dictionary.save(trigram_dictionary_filepath)
 
 
-# %% code_folding=[0]
+# %%
 def trigram_bow_generator(filepath):
     """
     generator function to read speeches from a file
@@ -292,8 +278,6 @@ def trigram_bow_generator(filepath):
 
 
 # %%
-# %%time
-# short running
 trigram_bow_filepath = f"data/tm/{prefix}trigram_bow_corpus_all_{thres_suffix}.mm"
 if Path(trigram_bow_filepath).exists():
     print(f"Trigram bag-of-words available at {trigram_bow_filepath}")
@@ -315,7 +299,7 @@ trigram_bow_corpus = MmCorpus(trigram_bow_filepath)
 # %%
 # %%time
 # medium-long running
-topics = [5, 10, 15, 30, 50, 100, 250, 500]
+topics = [2, 5, 10, 15, 30, 50, 100, 250, 500, 1000]
 for number_of_topics in topics:
     # topic model
     lda_model_filepath = (
@@ -346,7 +330,7 @@ for number_of_topics in topics:
             LDAvis_prepared = pickle.load(f)
     else:
         print(f"LDA visualization not available. Now creating {LDAvis_data_filepath}")
-        LDAvis_prepared = pyLDAvis.gensim.prepare(
+        LDAvis_prepared = pyLDAvis.gensim_models.prepare(
             lda, trigram_bow_corpus, trigram_dictionary
         )
 
@@ -366,7 +350,7 @@ for number_of_topics in topics:
         pyLDAvis.save_html(LDAvis_prepared, LDAvis_html_filepath)
 
 # %% [markdown]
-# ## Single model review
+# ## Single Model Review
 
 # %%
 DEFAULT_NO_TOPICS = 250
@@ -382,11 +366,17 @@ LDAvis_data_filepath = (
 with open(LDAvis_data_filepath, "rb") as f:
     LDAvis_prepared = pickle.load(f)
 
+# %% [markdown]
+# If the next cell displays something, the menu bar is disabled. Delete the output to see the menu bar.
+
+# %%
 pyLDAvis.display(LDAvis_prepared)
 
 
 # %% [markdown]
-# On Github, the notebook is statically rendered, the LDA visualization is interactive. View with nbviewer instead: [Jupyter nbviewer](https://nbviewer.jupyter.org/github/sebas-seck/bundestag_nlp/blob/main/nb_03_topic_modelling.ipynb#topic=0&lambda=1&term=)
+# View the notebook [here](https://nbviewer.jupyter.org/github/sebas-seck/bundestag_nlp/blob/main/nb_03_topic_modelling.ipynb#topic=0&lambda=1&term=) with Jupyter's nbviewer as the interactive visualizations are not rendered with the static display of notebooks on Github. Alternatively, paste the link to the notebook on Github [here](https://nbviewer.jupyter.org/).
+#
+# The definition of the number of latent topics to uncover has no set definition. Given the unsupervised nature of Topic modeling, I expect numbers of varying magnitude to result in differing broadness of topics.
 
 # %%
 def lda_description(review_text, min_topic_freq=0.05):
@@ -441,7 +431,6 @@ review_text1 = """Herr Minister, möglicherweise ist das ein Anlass, um über an
     Das ist einfach sehr schwierig in einer Tierseuchensituation zu händeln. Ich glaube zudem, dass die in Rede stehenden Maßnahmen ethisch nicht
     mehr vertretbar sind. Deswegen lautet meine Frage: Müssen wir nicht auch über Strukturen bei den Tierbeständen nachdenken?"""
 
-# %%
 review_text2 = """Vielen Dank, Herr Präsident. – Herr Kollege Kekeritz, gestern fand eine informelle Tagung der Entwicklungsminister der
     Europäischen Union statt. Auf der Tagesordnung stand unter anderem der mehrjährige Finanzrahmen der Europäischen Union. Die Kommission bereitet
     die Debatte vor. Das Europäische Parlament wie auch der Ministerrat in allen seinen Formationen wird sich zu der Frage positionieren müssen,
@@ -449,7 +438,6 @@ review_text2 = """Vielen Dank, Herr Präsident. – Herr Kollege Kekeritz, geste
     Entwicklungsminister Dr. Gerd Müller dazu aufgerufen, die internationalen Aufgaben der Europäischen Union, insbesondere mit Blick auf Afrika,
     deutlich zu stärken."""
 
-# %%
 review_text3 = """Welche konkreten rechtlichen Überlegungen haben die Ostbeauftragte Iris Gleicke und das Bundeswirtschaftsministerium dazu
     veranlasst, für eine Studie des Göttinger Instituts für Demokratieforschung zum Thema 'Rechtsextremismus und Fremdenfeindlichkeit in
     Ostdeutschland', die nach eigenen Angaben von Iris Gleicke selbst nach Nacherfüllungsmöglichkeit eine 'schlicht nicht hinnehmbare Schlamperei'

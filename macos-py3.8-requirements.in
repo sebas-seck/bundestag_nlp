@@ -1,0 +1,23 @@
+--extra-index-url https://github.com/explosion/spacy-models/releases//tag/de_core_news_lg-3.0.0
+--extra-index-url https://github.com/explosion/spacy-models/releases//tag/de_core_news_sm-3.0.0
+
+black
+de_core_news_lg
+de_core_news_sm
+gensim
+# imgkit
+# ipython==7.10.0
+jupyterlab
+jupytext
+nltk
+# notebook
+numpy
+pandas
+pandas-profiling[notebook]
+# bamboolib
+pip-tools
+pre-commit
+pyLDAvis
+pytest
+spacy
+textblob-de

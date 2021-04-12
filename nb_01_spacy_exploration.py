@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.6.0
+#       jupytext_version: 1.11.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -18,22 +18,12 @@
 
 # +
 import os
-from pathlib import Path
 
-import imgkit
 import pandas as pd
 import spacy
-from IPython.core.display import HTML, display
-from IPython.display import Image
 from spacy import displacy
 
 # -
-
-pd.set_option(
-    "display.colheader_justify", "left"
-)  # sets the default alignment of column headers to 'left'
-display(HTML("<style>.container { width:100% !important; }</style>"))
-
 
 # ### Helper Functions
 
@@ -365,8 +355,8 @@ displacy_visual(doc, style="ent")
 # spaCy does not ship with sentiment lexicons, therefore I chose TextBlob to lookup sentiment values for German language. TextBlob itself is another NLP library, the TextBlobDE addition provides the German sentiment lexicon and is very easy to use. At this time, subjectivity scores are not integrated into the lexicon, only polarity scores ranging from -1 to 1.
 
 # +
-# To download the language model and nltk corpora for TextBlob, make this cell executable
-if 1 == 1:
+# Download the language model and nltk corpora for TextBlob the first time
+if 1 == 0:
     os.system("python -m textblob.download_corpora")
 
 from textblob_de import TextBlobDE as TextBlob
@@ -375,7 +365,6 @@ from textblob_de import TextBlobDE as TextBlob
 
 # The next chunk looks through the entire document already used above and retrieves and lemmatized words used which are assigned either a positive or negative polarity. It's this easy.
 
-# https://spacy.io/usage/linguistic-features#accessing
 for token in doc:
     if TextBlob(token.lemma_).sentiment[0] != 0:
         print("{:20} {:}".format(token.lemma_, TextBlob(token.lemma_).sentiment))
