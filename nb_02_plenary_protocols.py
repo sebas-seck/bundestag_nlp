@@ -19,10 +19,11 @@
 # %%
 from pathlib import Path
 import glob
+import numpy as np
 import pandas as pd
 
 # %%
-VERBOSE = True
+VERBOSE = False
 
 
 # %%
@@ -73,98 +74,63 @@ if VERBOSE:
 # For now, we'll keep only speeches and replace newlines read-in literally.
 
 # %%
-df = df[~df["text"].isnull()].copy()
+df.dropna(subset=["text"], inplace=True)
 df.loc[:, "text"] = df.loc[:, "text"].str.replace("\n\n", " ").replace("\n", " ")
 df.loc[:, "text"] = df.loc[:, "text"].astype(str)
-df = df[df["type"] == "speech"]
-df = df.reset_index(drop=True)
+df = df[df["type"] == "speech"].copy()
+df.reset_index(drop=True, inplace=True)
 df.drop(["Unnamed: 0", "row.names"], axis=1, inplace=True, errors="ignore")
 print(f"The shape is reduced from {df_prior_shape[0]} rows to {df.shape[0]}")
-show(df[:3])
-
-# %%
-show(df[df["text"].str.contains("\. nan")][:5])
+show(df[["speaker_cleaned", "text"]][:3])
 
 # %% [markdown]
-#
-#
-# ### Option A: Slow but sizable junks without mid-sentence interruptions
-# It's slow but sizable junks without mid-sentence interruptions. Speeches span multiple rows, such cases can be joined partly, to finish on full sentences. A loop is computationally expensive (~25 min) but does the work!
+# todo describe what happens
+
+# %%
+df["previous_speaker_fp"] = df["speaker_fp"].shift(1)
+df["new_speaker"] = df["speaker_fp"] != df["previous_speaker_fp"]
+df["speech_identifier"] = np.nan
+df
 
 # %%
 # %%time
-path_plpr_a = "data/plpr_a.pkl"
-if Path(path_plpr_a).exists():
-    df_a = pd.read_pickle(path_plpr_a)
-
-else:
-    df_a = df.copy().reset_index(drop=True)
-    for i in range(0, df_a.shape[0] - 1):
-        if df_a.at[i, "speaker_fp"] == df_a.at[i + 1, "speaker_fp"]:
-            # if type(df_a.at[i,'text']) == float:
-            # print(df_a.at[i,'text'])
-            if df_a.at[i, "text"].endswith("." or "!" or "?" or ":"):
-                continue
-            else:
-                df_a.at[i + 1, "text"] = str(
-                    df_a.at[i, "text"] + " " + df_a.at[i + 1, "text"]
-                )
-                df_a.drop(i, inplace=True)
-            # stop the transformation as the loop runs out of index
-
-    df_a = df_a.reset_index(drop=True)  # reindexing
-    df_a.to_pickle(path_plpr_a)
-show(df_a[:3])
-
-# %% [markdown]
-# ### Option B: Fast per speech with some column detail disregarded
-#
+speech_identifier = int(0)
+for index, row in df.iterrows():
+    if row["new_speaker"]:
+        speech_identifier += 1
+    df.at[index, "speech_identifier"] = speech_identifier
 
 # %%
-for name in df.columns:
-    print(df.at[0, name] == df.at[1, name], name)
-
-# %%
-# %%time
-if 1 == 1:
-    df_b = df.copy()
-    df_b["speaker_fp_duplicate"] = df_b["speaker_fp"].copy()
-    adjacent_rows_grouper = (df_b["speaker_fp"].shift() != df_b["speaker_fp"]).cumsum()
-    df_b["id"] = df_b["id"].astype(str)
-    df_b = (
-        df_b.groupby(
-            [
-                adjacent_rows_grouper,
-                "sitzung",
-                "wahlperiode",
-                "speaker_cleaned",
-                "filename",
-                "type",
-            ]
-        )["text"]
-        .apply(" ".join)
-        .reset_index()
+df = (
+    df.groupby(["speaker_fp", "speech_identifier"], sort=False)
+    .agg(
+        {
+            "id": "count",
+            "sitzung": "first",
+            "wahlperiode": "first",
+            "speaker": "first",
+            "speaker_cleaned": "first",
+            "sequence": min,
+            "text": " ".join,
+            "filename": "first",
+            "type": "first",
+            "speaker_party": "first",
+        }
     )
-    df_b.to_pickle("data/plpr_b.pkl")
-    show(df_b[:5])
+    .reset_index()
+)
+
+# %%
+df.to_pickle("data/plpr.pkl")
 
 # %% [markdown]
 # ### All Text
 # To model topics, metainformation for speeches is not relevant. Everything in the text column can be glued together for that purpose.
 
 # %%
-# Option A
-path_alltext_a = Path("data/plpr_alltext_a.txt")
+path_alltext = Path("data/plpr_alltext.txt")
 
-df_a["text"].to_csv(path_alltext_a, sep=" ", index=False, header=False)
-preview_lines(path_alltext_a, N=2)
-
-# %%
-# Option B
-path_alltext_b = Path("data/plpr_alltext_b.txt")
-
-# df_b["text"] = df_b["text"].str.replace(". nan", ".")
-# df_b["text"][df_b["text"] != "nan"].to_csv(path_alltext_b, sep=" ", index=False, header=False)
-df_b["text"].to_csv(path_alltext_b, sep=" ", index=False, header=False)
+df["text"].to_csv(path_alltext, sep=" ", index=False, header=False)
+preview_lines(path_alltext, N=2)
 
 # %%
