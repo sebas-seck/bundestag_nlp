@@ -16,8 +16,9 @@
 
 # %% [markdown]
 # # Topic Modeling
-# Eyeballing parliamentary minutes for two election periods using topic modelling is performed in this notebook. The initial creation of n-grams may take a long time!
+# Eyeballing parliamentary minutes for two election periods using topic modelling is performed in this notebook. The initial creation of n-grams takes long (~1h.
 # - Language model from spaCy
+# - n-grams models are large in size and quick to compute given n-gram prepared text
 # - Corpus and LDA with gensim
 # - Visualization with pyLDAvis
 
@@ -38,27 +39,20 @@ from gensim.models.ldamulticore import LdaMulticore
 from gensim.models.word2vec import LineSentence
 
 # %%
-# Create needed subfolder in 'data' and subfolder 'out'
+# Create subfolder 'tm' and 'out' in 'data'
 Path("data/tm").mkdir(parents=True, exist_ok=True)
-Path("out").mkdir(parents=True, exist_ok=True)
+Path("data/out").mkdir(parents=True, exist_ok=True)
 
 # %% [markdown] tags=[]
 # #### Configuration
 # - Models are large in size and quick to compute -> save only when re-running the notebook frequently
-# - SpaCy provides a small and a large language model for German
-# - Notebook 02 produces two separate speech text files, `..._a.txt` contains speech fragments per line (i.e. per document when processed here), `..._b.txt` contains whole speeches per line
-#
-# The prefix encodes the configuration and is added to all file paths.
 
 # %%
 SAVE_MODELS = True
+# language_model = "de_dep_news_trf"
 language_model = "de_core_news_lg"
-# language_model = 'de_core_news_sm'
 gerNLP = spacy.load(language_model)
-# speeches_txt_filepath = 'data/plpr_alltext_a.txt'
-speeches_txt_filepath = "data/plpr_alltext_b.txt"
-prefix = f"{speeches_txt_filepath[-5:-4]}_{language_model[-2:]}_"  # text file option (a or b) and language model (small sm or large lg)
-prefix
+speeches_txt_filepath = "data/plpr_alltext.txt"
 
 
 # %% [markdown]
@@ -110,14 +104,15 @@ def lemmatized_sentence_corpus_to_file(input_file, output_file):
 
 # %% [markdown]
 # ## Unigrams
-# The text file is a text-only extract of the speeches of the plenary protocols dataframe in `nb_02`. To create unigrams, all text is cleaned by stripping junk such as stop words or meaningless filter workds, conjugated words are reveresed to their base form.
+# The text file is a text-only extract of the speeches of the plenary protocols dataframe in `nb_02`. To create unigrams, all text is cleaned by stripping junk such as stop words or meaningless filter words, conjugated words are reversed to their base form.
 
 # %%
 preview(speeches_txt_filepath)
 
 # %%
+# %%time
 # long running
-unigram_sentences_filepath = f"data/tm/{prefix}unigram_sent_all.txt"
+unigram_sentences_filepath = "data/tm/unigram_sent_all.txt"
 
 if Path(unigram_sentences_filepath).exists():
     print(f"Unigram sentences available at {unigram_sentences_filepath}")
@@ -126,18 +121,16 @@ else:
     lemmatized_sentence_corpus_to_file(
         input_file=speeches_txt_filepath, output_file=unigram_sentences_filepath
     )
-
 unigram_sentences = LineSentence(unigram_sentences_filepath)
-
-preview_lines(unigram_sentences_filepath)
+# preview_lines(unigram_sentences_filepath)
 
 # %% [markdown]
 # ## Bigrams
-# Bigrams (or any larger structure of n-grams) represent word pairs (or triplets, quadruples, etc.) of words commonly appearing together. "Renewable" and "energy" used independetly do not convey the same meaning as when being used together in "renewable_energy".
+# Bigrams (or any larger structure of n-grams) represent word pairs (or triplets, quadruples, etc.) of words commonly appearing together. "Renewable" and "energy" used independetly do not convey the same meaning as "renewable_energy".
 
 # %%
 # %%time
-bigram_model_filepath = f"data/tm/{prefix}bigram_model_all"
+bigram_model_filepath = "data/tm/bigram_model_all"
 if Path(bigram_model_filepath).exists():
     print(f"Bigram model available at {bigram_model_filepath}")
     bigram_model = Phrases.load(bigram_model_filepath)
@@ -148,7 +141,7 @@ else:
         bigram_model.save(bigram_model_filepath)
 
 # %%
-bigram_sentences_filepath = f"data/tm/{prefix}bigram_sent_all.txt"
+bigram_sentences_filepath = "data/tm/bigram_sent_all.txt"
 if Path(bigram_sentences_filepath).exists():
     print(f"Bigram sentences available at {bigram_sentences_filepath}")
 else:
@@ -168,7 +161,7 @@ preview_lines(bigram_sentences_filepath)
 
 # %%
 # %%time
-trigram_model_filepath = f"data/tm/{prefix}trigram_model_all"
+trigram_model_filepath = "data/tm/trigram_model_all"
 if Path(trigram_model_filepath).exists():
     print(f"Trigram model available at {trigram_model_filepath}")
     trigram_model = Phrases.load(trigram_model_filepath)
@@ -180,7 +173,7 @@ else:
 
 # %%
 # short running
-trigram_sentences_filepath = f"data/tm/{prefix}trigram_sent_all.txt"
+trigram_sentences_filepath = "data/tm/trigram_sent_all.txt"
 if Path(trigram_sentences_filepath).exists():
     print(f"Trigram sentences available at {trigram_sentences_filepath}")
 else:
@@ -197,7 +190,7 @@ preview_lines(trigram_sentences_filepath)
 # %%
 # %%time
 # long running
-trigram_speeches_filepath = f"data/tm/{prefix}trigram_transformed_speeches_all.txt"
+trigram_speeches_filepath = "data/tm/trigram_transformed_speeches_all.txt"
 if Path(trigram_speeches_filepath).exists():
     print(f"Trigram speeches available at {trigram_speeches_filepath}")
 else:
@@ -232,7 +225,9 @@ preview_lines(trigram_speeches_filepath, N=2)
 
 # %%
 print(
-    f"File {trigram_speeches_filepath} contains {sum(1 for line in open(trigram_speeches_filepath))} documents"
+    f"""
+File {trigram_speeches_filepath} contains {sum(1 for line in open(trigram_speeches_filepath))} documents
+"""
 )
 
 # %% [markdown]
@@ -242,10 +237,10 @@ print(
 # The parameters `THRES_BELOW` AND `THRES_ABOVE` define, which keywords can define a topic. `THRES_BELOW` is the minimum number of documents, in which a keyword needs to occur to be able to define a topic. `THRES_ABOVE` is a relative value, it defines the maximum fraction of documents, which may contain a keyword for the keyword to be able to define topics. Accordingly, keywords which are too common, cannot define a topic, and special terminology of a single speech does not, either.
 
 # %%
-THRESH_BELOW = 2
-THRESH_ABOVE = 0.01
+THRESH_BELOW = 10
+THRESH_ABOVE = 0.05
 thres_suffix = f"TB{str(THRESH_BELOW)}_TA{str(THRESH_ABOVE)}".replace(".", "")
-trigram_dictionary_filepath = f"data/tm/{prefix}trigram_dict_all_{thres_suffix}.dict"
+trigram_dictionary_filepath = f"data/tm/trigram_dict_all_{thres_suffix}.dict"
 if Path(trigram_dictionary_filepath).exists():
     print(f"Trigram dictionary available at {trigram_dictionary_filepath}")
     trigram_dictionary = Dictionary.load(trigram_dictionary_filepath)
@@ -278,7 +273,7 @@ def trigram_bow_generator(filepath):
 
 
 # %%
-trigram_bow_filepath = f"data/tm/{prefix}trigram_bow_corpus_all_{thres_suffix}.mm"
+trigram_bow_filepath = f"data/tm/trigram_bow_corpus_all_{thres_suffix}.mm"
 if Path(trigram_bow_filepath).exists():
     print(f"Trigram bag-of-words available at {trigram_bow_filepath}")
 else:
@@ -299,12 +294,10 @@ trigram_bow_corpus = MmCorpus(trigram_bow_filepath)
 # %%
 # %%time
 # medium-long running
-topics = [2, 5, 10, 15, 30, 50, 100, 250, 500, 1000]
+topics = [50, 250, 500]
 for number_of_topics in topics:
     # topic model
-    lda_model_filepath = (
-        f"data/tm/{prefix}lda_model_{thres_suffix}_{str(number_of_topics)}"
-    )
+    lda_model_filepath = f"data/tm/lda_model_{thres_suffix}_{str(number_of_topics)}"
     if Path(lda_model_filepath).exists():
         print(f"Trigram bag-of-words available at {lda_model_filepath}")
         # load the finished LDA model from disk
@@ -322,7 +315,7 @@ for number_of_topics in topics:
 
     # topic model visual
     LDAvis_data_filepath = (
-        f"data/tm/{prefix}ldavis_prepared_{thres_suffix}_{str(number_of_topics)}"
+        f"data/tm/ldavis_prepared_{thres_suffix}_{str(number_of_topics)}"
     )
     if Path(LDAvis_data_filepath).exists():
         print(f"LDA Visualization available at {LDAvis_data_filepath}")
@@ -339,7 +332,7 @@ for number_of_topics in topics:
 
     # topic model html visual
     LDAvis_html_filepath = (
-        f"out/{prefix}lda_viz_{thres_suffix}_{str(number_of_topics)}.html"
+        f"data/out/lda_viz_{thres_suffix}_{str(number_of_topics)}.html"
     )
     if Path(LDAvis_html_filepath).exists():
         print(f"LDA Visualization available at {LDAvis_html_filepath}")
@@ -354,24 +347,24 @@ for number_of_topics in topics:
 
 # %%
 DEFAULT_NO_TOPICS = 250
-DEFAULT_THRESHS = "TB2_TA005"
-lda_model_filepath = (
-    f"data/tm/{prefix}lda_model_{DEFAULT_THRESHS}_{str(DEFAULT_NO_TOPICS)}"
+DEFAULT_THRESHS = "TB{}_TA{}".format(
+    str(THRESH_BELOW), str(THRESH_ABOVE).replace(".", "")
 )
+lda_model_filepath = f"data/tm/lda_model_{DEFAULT_THRESHS}_{str(DEFAULT_NO_TOPICS)}"
 # load the finished LDA model from disk
 lda = LdaMulticore.load(lda_model_filepath)
 LDAvis_data_filepath = (
-    f"data/tm/{prefix}ldavis_prepared_{thres_suffix}_{str(DEFAULT_NO_TOPICS)}"
+    f"data/tm/ldavis_prepared_{thres_suffix}_{str(DEFAULT_NO_TOPICS)}"
 )
 with open(LDAvis_data_filepath, "rb") as f:
     LDAvis_prepared = pickle.load(f)
 
+
 # %% [markdown]
 # If the next cell displays something, the menu bar is disabled. Delete the output to see the menu bar.
 
-# %%
-pyLDAvis.display(LDAvis_prepared)
-
+# %% [markdown]
+# pyLDAvis.display(LDAvis_prepared)
 
 # %% [markdown]
 # View the notebook [here](https://nbviewer.jupyter.org/github/sebas-seck/bundestag_nlp/blob/main/nb_03_topic_modelling.ipynb#topic=0&lambda=1&term=) with Jupyter's nbviewer as the interactive visualizations are not rendered with the static display of notebooks on Github. Alternatively, paste the link to the notebook on Github [here](https://nbviewer.jupyter.org/).
