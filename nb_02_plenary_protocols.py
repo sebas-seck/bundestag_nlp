@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 
 # %%
-VERBOSE = False
+VERBOSE = True
 
 
 # %%
