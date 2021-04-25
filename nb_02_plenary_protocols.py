@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 
 # %%
-VERBOSE = True
+VERBOSE = False
 
 
 # %%
@@ -45,7 +45,7 @@ def preview_lines(filepath, N=5):
 
 # %%
 path = "plpr-scraper/data/out"
-all_files = glob.glob(path + "/*.csv")
+all_files = sorted(glob.glob(path + "/*.csv"))
 
 df_list = []
 
@@ -131,6 +131,6 @@ df.to_pickle("data/plpr.pkl")
 path_alltext = Path("data/plpr_alltext.txt")
 
 df["text"].to_csv(path_alltext, sep=" ", index=False, header=False)
-preview_lines(path_alltext, N=2)
+preview_lines(path_alltext, N=13)
 
 # %%

@@ -45,5 +45,6 @@ Data preparation of parsed plenary protocols, forked from [bundestag/plpr-scrape
 - Documents turned into corpus and bag-of-words representations
 - Topics uncovered with Latent Dirichlet Allocation
 - Visualization of topics with pyLDAvis
+- Detection of energy politics within topcis
 
 _View the notebook [here](https://nbviewer.jupyter.org/github/sebas-seck/bundestag_nlp/blob/main/nb_03_topic_modelling.ipynb#topic=0&lambda=1&term=) with Jupyter's nbviewer as the interactive visualizations are not rendered with the static display of notebooks on Github. Alternatively, paste the link to the notebook on Github [here](https://nbviewer.jupyter.org/)._

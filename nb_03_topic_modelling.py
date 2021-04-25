@@ -26,6 +26,9 @@
 # ## Setup
 
 # %%
+VERBOSE = False
+
+# %%
 import codecs
 from pathlib import Path
 
@@ -358,13 +361,15 @@ LDAvis_data_filepath = (
 )
 with open(LDAvis_data_filepath, "rb") as f:
     LDAvis_prepared = pickle.load(f)
-
-
-# %% [markdown]
-# If the next cell displays something, the menu bar is disabled. Delete the output to see the menu bar.
+print(f"Model in use: {LDAvis_data_filepath}")
 
 # %% [markdown]
-# pyLDAvis.display(LDAvis_prepared)
+# In verbose mode, the next cell displays a visualization of topic models, disabling the Jupyter menu bar. Delete the output to see the menu bar again.
+
+# %%
+if VERBOSE:
+    pyLDAvis.display(LDAvis_prepared)
+
 
 # %% [markdown]
 # View the notebook [here](https://nbviewer.jupyter.org/github/sebas-seck/bundestag_nlp/blob/main/nb_03_topic_modelling.ipynb#topic=0&lambda=1&term=) with Jupyter's nbviewer as the interactive visualizations are not rendered with the static display of notebooks on Github. Alternatively, paste the link to the notebook on Github [here](https://nbviewer.jupyter.org/).
@@ -448,5 +453,37 @@ lda_description(review_text2)
 
 # %%
 lda_description(review_text3)
+
+# %% [markdown]
+# ## Energy Politics Topics
+
+# %% [markdown]
+# Which keywords make up the energy politics topic? Looking at a few speeches from three plenary debates, topics can be identified which can be reviewed manually for further, relevant terms to handcraft topic models later.
+#
+# - [17/96](https://dip21.bundestag.de/dip21/btp/17/17096.pdf): March 17th 2011, second meeting after the catastrophe, first technical debates about nuclear power
+# - [17/117](https://dip21.bundestag.de/dip21/btp/17/17117.pdf): Discussions on changing the Atomic Energy Act
+# - [17/229](https://dip21.bundestag.de/dip21/btp/17/17229.pdf): March 15th 2013, shortly after the second anniversary of the catastrophe
+
+# %%
+speeches = {
+    11636: "Angela Merkel",
+    14197: "Norbert Rötgen",
+    14198: "Sigmar Gabriel",
+    14199: "Philipp Rösler",
+    14200: "Gregor Gysi",
+    29594: "Jürgen Trittin",
+    29595: "Christian Hirte",
+    29596: "Marco Bülow",
+}
+
+# %%
+with open(speeches_txt_filepath) as f:
+    d = f.readlines()
+
+# %%
+for k, v in speeches.items():
+    print(v)
+    text = d[k - 1]
+    print(lda_description(text))
 
 # %%
