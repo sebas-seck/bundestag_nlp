@@ -7,7 +7,7 @@ In this repo, I pick up efforts undertaken with NLP for my Master's thesis in 20
 - 363 plenary protocols cover all plenary meetings from 2009 till 2015
 - All text processed is in German
 
-![atom wordcloud](data/atom.png)
+![atom wordcloud](docs/atom.png)
 
 ## Get started
 

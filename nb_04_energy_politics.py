@@ -197,11 +197,11 @@ stylecloud.gen_stylecloud(
     palette="colorbrewer.qualitative.Dark2_8",
     background_color="black",
     gradient="horizontal",
-    output_name="data/atom.png",
+    output_name="docs/atom.png",
 )
 
 # %% [markdown]
-# ![atom wordcloud](data/atom.png)
+# ![atom wordcloud](docs/atom.png)
 
 # %%
 # Organizes all topic models in a list of lists
