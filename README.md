@@ -7,12 +7,14 @@ In this repo, I pick up efforts undertaken with NLP for my Master's thesis in 20
 - 363 plenary protocols cover all plenary meetings from 2009 till 2015
 - All text processed is in German
 
+![atom wordcloud](data/atom.png)
+
 ## Get started
 
 Python 3.8 environment set up with conda and pip-tools on MacOS.
 
 ```shell
-conda create -n bt python=3.8
+conda create -n bt python=3.8 -y
 conda activate bt
 pip install pip-tools
 pip-compile --output-file=macos-py3.8-requirements.txt macos-py3.8-requirements.in
