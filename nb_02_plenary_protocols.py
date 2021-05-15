@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 
 # %%
-VERBOSE = False
+VERBOSE = True
 
 
 # %%
@@ -84,7 +84,7 @@ print(f"The shape is reduced from {df_prior_shape[0]} rows to {df.shape[0]}")
 show(df[["speaker_cleaned", "text"]][:3])
 
 # %% [markdown]
-# todo describe what happens
+# Neighbouring rows with the same speaker recceive the same speech identifier via a row shift and subsequent grouping.
 
 # %%
 df["previous_speaker_fp"] = df["speaker_fp"].shift(1)
@@ -99,6 +99,9 @@ for index, row in df.iterrows():
     if row["new_speaker"]:
         speech_identifier += 1
     df.at[index, "speech_identifier"] = speech_identifier
+
+# %%
+df
 
 # %%
 df = (
@@ -122,6 +125,15 @@ df = (
 
 # %%
 df.to_pickle("data/plpr.pkl")
+
+# %% [markdown]
+# Nevertheless, the data quality is not yet perfect. From the parsed files of the plpr-scraper repo, there are fractions of speeches assigned to the speaker identifier column, as the example shows.
+
+# %%
+df_17002 = pd.read_csv(
+    "plpr-scraper/data/out/17002.csv", index_col=None, escapechar="\\"
+)
+df_17002["speaker_fp"].unique()
 
 # %% [markdown]
 # ### All Text

@@ -5,6 +5,7 @@ black
 de_core_news_lg
 de_dep_news_trf
 gensim
+ipywidgets>=7.5
 jupyterlab
 jupytext
 matplotlib
@@ -13,9 +14,11 @@ numpy
 pandas
 pandas-profiling[notebook]
 pip-tools
+plotly
 pre-commit
 pyLDAvis
 pytest
 spacy
 stylecloud
 textblob-de
+pydantic>=1.7.4

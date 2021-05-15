@@ -56,6 +56,8 @@ class OpinionAnalyzer(object):
         self.df["score_log"] = ""
         self.df["score_log"] = self.df["score_log"].apply(list)
 
+        self.df["speech_length"] = None
+
         # counters
         self.keyword_counter = 0
         self.negation_counter = 0
@@ -175,6 +177,7 @@ class OpinionAnalyzer(object):
     def _batch(self, i, doc):
 
         for token in doc:
+            self.df.loc[i, "speech_length"] = len(doc)
             for j in range(0, len(TOPICS)):
                 if token.lemma_ in TOPICS[j]:
 

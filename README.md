@@ -19,6 +19,7 @@ conda activate bt
 pip install pip-tools
 pip-compile --output-file=macos-py3.8-requirements.txt macos-py3.8-requirements.in
 pip-sync macos-py3.8-requirements.txt
+jupyter labextension install jupyterlab-plotly@4.14.3
 ```
 
 ## Notebooks

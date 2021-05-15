@@ -38,17 +38,17 @@ from src.keywords import ANTI_NUCLEAR, CONSERVATIVE_ENERGY, NEUTRAL_ENERGY, PRO_
 # - Is <keyword> directly associated with energy politics but does not fit into the above categories? If yes, the topic is **neutral energy**.
 #
 # ### Stylecloud with keywords
-#
-#
-# text = " ".join(ANTI_NUCLEAR + CONSERVATIVE_ENERGY + NEUTRAL_ENERGY + PRO_NUCLEAR)
-# stylecloud.gen_stylecloud(
-#     text=text,
-#     icon_name="fas fa-atom",
-#     palette="colorbrewer.qualitative.Dark2_8",
-#     background_color="black",
-#     gradient="horizontal",
-#     output_name="docs/atom.png",
-# )
+
+# %%
+text = " ".join(ANTI_NUCLEAR + CONSERVATIVE_ENERGY + NEUTRAL_ENERGY + PRO_NUCLEAR)
+stylecloud.gen_stylecloud(
+    text=text,
+    icon_name="fas fa-atom",
+    palette="colorbrewer.qualitative.Dark2_8",
+    background_color="black",
+    gradient="horizontal",
+    output_name="docs/atom.png",
+)
 
 # %% [markdown]
 # ![atom wordcloud](docs/atom.png)
@@ -249,5 +249,54 @@ with pd.option_context(
             ]
         ].describe()
     )
+
+# %%
+df[:10]
+
+# %%
+df["time"] = df["wahlperiode"].astype(str) + df["sitzung"].astype(str).str.zfill(3)
+
+# %%
+df["speaker_party"].fillna("unknown", inplace=True)
+
+# %%
+df.to_pickle("data/df_energy_speeches.pkl")
+
+# %% [markdown]
+# ## Visual
+
+# %%
+import plotly.express as px
+
+# %%
+party_colors = {
+    "unknown": "grey",
+    "fdp": "yellow",
+    "linke": "magenta",
+    "gruene": "green",
+    "cducsu": "black",
+    "spd": "red",
+    "cducsu:spd": "blue",
+}
+
+# %%
+df["speech_length"] = df["speech_length"].astype("int")
+
+# %%
+fig = px.scatter(
+    df.query("w_score != 0"),
+    x="time",
+    y="w_score",
+    color="speaker_party",
+    color_discrete_map=party_colors,
+    size="speech_length",
+    opacity=0.5,
+    title="Speeches on Energy Politics",
+    hover_data=["speaker"],
+)
+fig.show()
+
+# %%
+fig.write_html("timeline_energy_politics_speeches.html")
 
 # %%
