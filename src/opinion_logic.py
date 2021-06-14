@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import time
+import datetime
 
 import nltk
 import spacy
@@ -15,7 +16,19 @@ ALL_KEYWORDS = ANTI_NUCLEAR + PRO_NUCLEAR + NEUTRAL_ENERGY + CONSERVATIVE_ENERGY
 
 
 class OpinionAnalyzer(object):
+    """
+    Analyzes opinions towards energy politics of speeches.
+    """
+
     def __init__(self, df) -> None:
+        """
+        Creates an opinion analyzer instance for a given dataframe.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            Expects a dataframe with the speech contained in the 'text' column
+        """
         self.df = df
 
         # Initialization of Scores
@@ -222,14 +235,30 @@ class OpinionAnalyzer(object):
                         self.df.loc[i, "CE_descriptive"].append(self.sentiment_list)
                         self.df.loc[i, "CE_s"] += token_score
 
-    def main(self):
+    def main(self, batch_size, n_process):
         start_time = time.time()
 
         self.gerNLP = spacy.load("de_core_news_lg")
 
-        for i, doc in enumerate(self.gerNLP.pipe(self.df["text"], batch_size=100)):
+        start = time.time()
+
+        for i, doc in enumerate(
+            self.gerNLP.pipe(
+                self.df["text"],
+                disable=["ner", "tok2vec", "attribute_ruler"],
+                batch_size=batch_size,
+                n_process=n_process,
+            )
+        ):
 
             self._batch(i, doc)
+            if i % 500 == 0:
+                print(
+                    f"{i} of {self.df.shape[0]} documents parsed in {str(datetime.timedelta(seconds=int(time.time() - start)))}"
+                )
+
+                start = time.time()
+
             if i == self.df.shape[0]:
                 break
 
