@@ -1,0 +1,29 @@
+df_prep_pickle_path: "data/df_prep.pkl"
+df_processed_pickle_path: "data/df_processed.pkl"
+spacy_language_model: de_core_news_lg
+# spacy_language_model: de_core_news_sm
+relevant_scoring_pos:
+  - ADJ
+  - ADV
+  - NOUN
+  - VERB
+# relevant_scoring_tags:
+#   - ADJA
+#   - ADJD
+#   - ADV
+#   - ITJ
+#   - NN
+#   - PTKVZ
+#   - PTKANT
+#   - VVFIN
+#   - VAFIN
+#   - VMFIN
+#   - VVINF
+#   - VAINF
+#   - VMINF
+#   - VVIMP
+#   - VAIMP
+#   - VVPP
+#   - VAPP
+#   - VMPP
+#   - VVIZU

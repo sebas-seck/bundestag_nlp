@@ -5,6 +5,7 @@
 #    pip-compile --output-file=macos-py3.8-requirements.txt macos-py3.8-requirements.in
 #
 --extra-index-url https://github.com/explosion/spacy-models/releases//tag/de_core_news_lg-3.0.0
+--extra-index-url https://github.com/explosion/spacy-models/releases//tag/de_core_news_sm-3.0.0
 --extra-index-url https://github.com/explosion/spacy-models/releases//tag/de_dep_news_trf-3.0.0
 
 anyio==2.2.0
@@ -72,6 +73,8 @@ cymem==2.0.5
     #   spacy
     #   thinc
 de-core-news-lg==3.0.0
+    # via -r macos-py3.8-requirements.in
+de-core-news-sm==3.0.0
     # via -r macos-py3.8-requirements.in
 de-dep-news-trf==3.0.0
     # via -r macos-py3.8-requirements.in
@@ -467,6 +470,7 @@ spacy==3.0.6
     # via
     #   -r macos-py3.8-requirements.in
     #   de-core-news-lg
+    #   de-core-news-sm
     #   de-dep-news-trf
     #   spacy-transformers
 srsly==2.4.1

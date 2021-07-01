@@ -1,98 +1,134 @@
 # -*- coding: utf-8 -*-
 
+import copy
+import os
 import time
-import datetime
 
-import nltk
+import pandas as pd
 import spacy
 from textblob_de import TextBlobDE as TextBlob
 
+from src.data_prep import prepare_data
 from src.keywords import ANTI_NUCLEAR, CONSERVATIVE_ENERGY, NEUTRAL_ENERGY, PRO_NUCLEAR
-
-# nltk.download('punkt')
+from src.utils import extend_topics, parse_config
 
 TOPICS = [ANTI_NUCLEAR, PRO_NUCLEAR, NEUTRAL_ENERGY, CONSERVATIVE_ENERGY]
-ALL_KEYWORDS = ANTI_NUCLEAR + PRO_NUCLEAR + NEUTRAL_ENERGY + CONSERVATIVE_ENERGY
+TOPICS_EXTENDED = extend_topics(copy.deepcopy(TOPICS))
+ALL_KEYWORDS_EXTENDED = [y for x in TOPICS_EXTENDED for y in x]
+
+CONFIG = parse_config()
 
 
-class OpinionAnalyzer(object):
+class Speech:
     """
-    Analyzes opinions towards energy politics of speeches.
+    Holds a single speech with all accompanying information and provides
+    methods to process the speech.
     """
 
-    def __init__(self, df) -> None:
-        """
-        Creates an opinion analyzer instance for a given dataframe.
-
-        Parameters
-        ----------
-        df : pandas.DataFrame
-            Expects a dataframe with the speech contained in the 'text' column
-        """
-        self.df = df
-
-        # Initialization of Scores
-        # Anti Nuclear Descriptive & Score
-        self.df["AN_descriptive"] = ""
-        self.df["AN_descriptive"] = self.df["AN_descriptive"].apply(list)
-        self.df["AN_s"] = 0
-        self.df["AN_sp"] = 0
-        self.df["AN_s_afer"] = 0
-
-        # Pro Nuclear Descriptive & Score
-        self.df["PN_descriptive"] = ""
-        self.df["PN_descriptive"] = self.df["PN_descriptive"].apply(list)
-        self.df["PN_s"] = 0
-        self.df["PN_sp"] = 0
-        self.df["PN_sa"] = 0
-
-        # Neutral Energy Descriptive & Score
-        self.df["NE_descriptive"] = ""
-        self.df["NE_descriptive"] = self.df["NE_descriptive"].apply(list)
-        self.df["NE_s"] = 0
-        self.df["NE_sp"] = 0
-        self.df["NE_sa"] = 0
-
-        # Conservative Energy Descriptive & Score
-        self.df["CE_descriptive"] = ""
-        self.df["CE_descriptive"] = self.df["CE_descriptive"].apply(list)
-        self.df["CE_s"] = 0
-        self.df["CE_sp"] = 0
-        self.df["CE_sa"] = 0
-
-        # Placeholders for later final score calculation
-        self.df["score"] = 0
-        self.df["score_p"] = 0
-        self.df["score_a"] = 0
-
-        # Column to log scoring
-        self.df["score_log"] = ""
-        self.df["score_log"] = self.df["score_log"].apply(list)
-
-        self.df["speech_length"] = None
-
-        # counters
+    def __init__(self, doc_index, doc) -> None:
+        self.doc_index = doc_index
+        self.doc = doc
+        self.speech_length = len(doc)
         self.keyword_counter = 0
+        self.keywords = []
+        self.negation = []
+        self.third_person = []
+
+        self.AN_descriptive = []
+        self.AN_s = 0
+        self.PN_descriptive = []
+        self.PN_s = 0
+        self.NE_descriptive = []
+        self.NE_s = 0
+        self.CE_descriptive = []
+        self.CE_s = 0
+
+        # COUNTERS
+        self.subtree_length_counter = 0
+        self.ancestors_length_counter = 0
         self.negation_counter = 0
         self.third_person_counter = 0
         self.score_neutral_counter = 0
         self.score_positive_counter = 0
         self.score_negative_counter = 0
-        self.subtree_length_counter = 0
-        self.ancestors_length_counter = 0
 
-        self.sentiment_list = None
-        self.protocol = None
+        # CACHE ATTRIBUTES
+        self.active_token = None
+        self.active_topic = None
+        self.active_negation = None
+        self.active_third_person = None
 
-    def calc_scores(self, subtree, negation, third_person):
+    def as_dict(self):
+        """
+        Access important attributes as a dictionary
 
-        score = 0
+        Returns
+        -------
+        Dict
+            Dictionary of most relevant speech attributes
+        """
+        return {
+            "doc_index": self.doc_index,
+            "speech_length": self.speech_length,
+            "keyword_counter": self.keyword_counter,
+            "keywords": self.keywords,
+            "AN_descriptive": self.AN_descriptive,
+            "AN_s": self.AN_s,
+            "PN_descriptive": self.PN_descriptive,
+            "PN_s": self.PN_s,
+            "NE_descriptive": self.NE_descriptive,
+            "NE_s": self.NE_s,
+            "CE_descriptive": self.CE_descriptive,
+            "CE_s": self.CE_s,
+            "subtree_length_counter": self.subtree_length_counter,
+            "ancestors_length_counter": self.ancestors_length_counter,
+            "negation_counter": self.negation_counter,
+            "third_person_counter": self.third_person_counter,
+            "score_neutral_counter": self.score_neutral_counter,
+            "score_positive_counter": self.score_positive_counter,
+            "score_negative_counter": self.score_negative_counter,
+        }
+
+    def _negation(self, relatives):
+        self.active_negation = []
+
+        for i in range(0, len(relatives)):
+            if "PTKNEG" in [child.tag_ for child in relatives[i].children]:
+                self.active_negation.append(-1)
+                self.negation_counter += 1
+            else:
+                self.active_negation.append(1)
+
+    def _third_person(self, relatives):
+        self.active_third_person = []
+
+        for i in range(0, len(relatives)):
+            is_ent = 0
+            for token in relatives[i].ancestors:
+                if token.dep_ == "ROOT":
+                    children = [child for child in token.children]
+                    for token in children:
+                        if token.ent_iob == 3:
+                            is_ent += 1
+
+            if is_ent > 0:
+                self.active_third_person.append(0)
+                self.third_person_counter += 1
+            else:
+                self.active_third_person.append(1)
+
+    def _score_relatives(self, relatives):
         sentiment_list = []
-        for i in range(0, len(subtree)):
+        for i in range(0, len(relatives)):
             # Extracts the lemma of word i in the list
-            descriptor = TextBlob(subtree[i].lemma_)
-            # Looks up the sentiment polarity score in the dictionary
-            descriptor_sentiment = descriptor.sentiment[0]
+
+            descriptor = TextBlob(relatives[i].lemma_)
+            descriptor_sentiment = descriptor.sentiment.polarity
+
+            #  Multiplies with the negation sign (either 1 or -1)
+            descriptor_sentiment = descriptor_sentiment * self.active_negation[i]
+            # Multiplies with the third person attribution value (0 or 1)
+            descriptor_sentiment = descriptor_sentiment * self.active_third_person[i]
 
             # Tracks score taken
             if descriptor_sentiment == 0:
@@ -102,209 +138,138 @@ class OpinionAnalyzer(object):
             if descriptor_sentiment < 0:
                 self.score_negative_counter += 1
 
-            # Multiplies with the negation sign (either 1 or -1)
-            descriptor_sentiment_after_negation = descriptor_sentiment * negation[i]
-            # Multiplies with the third person attribution value (0 or 1)
-            descriptor_sentiment_after_third_person = (
-                descriptor_sentiment_after_negation * third_person[i]
-            )
-            # Adds the calculated value to the score
-            score += descriptor_sentiment_after_negation
+            sentiment_list = []
+            sentiment_list.append(relatives[i].lemma_)
+            sentiment_list.append(descriptor_sentiment)
+            sentiment_list.append(self.active_negation[i])
+            sentiment_list.append(self.active_third_person[i])
 
-            # Creates the variable 'sentiment_list' for documentation of the procedure of each element of the subtree list
-            self.sentiment_list.append(negation[i])
-            self.sentiment_list.append(third_person[i])
-            self.sentiment_list.append(subtree[i].lemma_)
-            self.sentiment_list.append(descriptor_sentiment)
+            if self.active_topic == 0:
+                self.AN_descriptive.append(sentiment_list)
+                self.AN_s += descriptor_sentiment
+            elif self.active_topic == 1:
+                self.PN_descriptive.append(sentiment_list)
+                self.PN_s += descriptor_sentiment
+            elif self.active_topic == 2:
+                self.NE_descriptive.append(sentiment_list)
+                self.NE_s += descriptor_sentiment
+            elif self.active_topic == 3:
+                self.CE_descriptive.append(sentiment_list)
+                self.CE_s += descriptor_sentiment
 
-        return score
-
-    def negation(self, list_of_words, negation):
-
-        for i in range(0, len(list_of_words)):
-            if "PTKNEG" in [child.tag_ for child in list_of_words[i].children]:
-                negation.append(-1)
-                self.negation_counter += 1
-            else:
-                negation.append(1)
-
-        return negation
-
-    def third_person(self, list_of_words, third_person):
-        """Checks if the speaker intends to requote another person and returns a binary result"""
-
-        for i in range(0, len(list_of_words)):
-            is_ent = 0
-            for token in list_of_words[i].ancestors:
-                if token.dep_ == "ROOT":
-                    children = [child for child in token.children]
-                    for token in children:
-                        if token.ent_iob == 3:
-                            is_ent += 1
-
-            if is_ent > 0:
-                third_person.append(0)
-                self.third_person_counter += 1
-            else:
-                third_person.append(1)
-
-        return third_person
-
-    def subtree(self, token):
-
-        negation = []
-        third_person = []
-
+    def _subtree(self):
         # direct_subtree is a list of the class spacy.tokens.token.Token
-        subtree = [
+        self.subtree = [
             descendant
-            for descendant in token.subtree
-            if descendant.tag_ not in ["PTKNEG"] and descendant.text not in ALL_KEYWORDS
+            for descendant in self.active_token.subtree
+            if descendant.tag_ not in ["PTKNEG"]
+            and descendant.text not in ALL_KEYWORDS_EXTENDED
+            and descendant.pos_ in CONFIG["relevant_scoring_pos"]
+            # and descendant.tag_ in CONFIG["relevant_scoring_tags"]
         ]
-        # second level of direct subtree
-        if subtree != []:
-            negation = self.negation(subtree, negation)
-            third_person = self.third_person(subtree, third_person)
-            self.subtree_length_counter += len(subtree)
 
-        return subtree, negation, third_person
-
-    def ancestors(self, token):
-        """Takes a token as input and returns descriptive children and the associated negation"""
-
-        negation = []
-        third_person = []
-
-        # direct_subtree is a list of the class spacy.tokens.token.Token
-        ancestors = [
-            ancestor for ancestor in token.ancestors if ancestor.tag_ not in ["PTKNEG"]
+    def _ancestors(self):
+        self.ancestors = [
+            ancestor
+            for ancestor in self.active_token.ancestors
+            if ancestor.tag_ not in ["PTKNEG"]
+            and ancestor.pos_ in CONFIG["relevant_scoring_pos"]
+            # and ancestor.tag_ in CONFIG["relevant_scoring_tags"]
         ]
-        # second level of direct subtree
-        if ancestors != []:
-            negation = self.negation(ancestors, negation)
-            third_person = self.third_person(ancestors, third_person)
-            self.ancestors_length_counter += len(ancestors)
 
-        return ancestors, negation, third_person
+    def _process_keyword_token(self):
+        self.keyword_counter += 1
+        self.keywords.append(self.active_token.text)
 
-    def _batch(self, i, doc):
+        # SUBTREE
+        self._subtree()
+        # On non-empty subtree lists, the score calculation function is called
+        if self.subtree != []:
+            self._negation(self.subtree)
+            self._third_person(self.subtree)
+            self.subtree_length_counter += len(self.subtree)
+            self._score_relatives(self.subtree)
 
-        for token in doc:
-            self.df.loc[i, "speech_length"] = len(doc)
-            for j in range(0, len(TOPICS)):
-                if token.lemma_ in TOPICS[j]:
+        # ANCESTORS
+        self._ancestors()
+        # On non-empty subtree lists, the score calculation function is called
+        if self.ancestors != []:
+            self._negation(self.ancestors)
+            self._third_person(self.ancestors)
+            self.ancestors_length_counter += len(self.ancestors)
+            self._score_relatives(self.ancestors)
 
-                    self.keyword_counter += 1
-
-                    self.sentiment_list = []
-
-                    # SUBTREE
-                    # Initializes the intermediate score for this tokens' subtree to 0
-                    token_score_subtree = 0
-                    # Calls the subtree function which returns a list of words and a list of negations
-                    subtree, negation, third_person = self.subtree(token)
-                    # On non-empty subtree lists, the score calculation function is called
-                    if subtree != []:
-                        token_score_subtree = self.calc_scores(
-                            subtree, negation, third_person
-                        )
-
-                    # ANCESTORS
-                    # Initializes intermediate score for this tokens' ancestors description to 0
-                    token_score_ancestors = 0
-                    # Calls the head description functions which returns a list of words and a list of negations
-                    ancestors, negation, third_person = self.ancestors(token)
-                    # On non-empty head_description lists, the score calculation function is called
-                    if ancestors != []:
-                        token_score_ancestors = self.calc_scores(
-                            ancestors, negation, third_person
-                        )
-
-                    token_score = token_score_subtree + token_score_ancestors
-
-                    if j == 0:
-                        self.df.loc[i, "AN_descriptive"].append(self.sentiment_list)
-                        self.df.loc[i, "AN_s"] += token_score
-                    elif j == 1:
-                        self.df.loc[i, "PN_descriptive"].append(self.sentiment_list)
-                        self.df.loc[i, "PN_s"] += token_score
-                    elif j == 2:
-                        self.df.loc[i, "NE_descriptive"].append(self.sentiment_list)
-                        self.df.loc[i, "NE_s"] += token_score
-                    elif j == 3:
-                        self.df.loc[i, "CE_descriptive"].append(self.sentiment_list)
-                        self.df.loc[i, "CE_s"] += token_score
-
-    def main(self, batch_size, n_process):
+    def _process_doc(self):
         start_time = time.time()
+        for token in self.doc:
+            self.active_token = token
+            for j in range(0, len(TOPICS_EXTENDED)):
+                if token.lemma_ in TOPICS_EXTENDED[j]:
+                    self.active_topic = j
+                    self._process_keyword_token()
+                    break  # no duplicate matches needed for a single token
+            self.active_token = None
+            self.active_topic = None
+            self.active_negation = None
+            self.active_third_person = None
+        self.duration = time.time() - start_time
 
-        self.gerNLP = spacy.load("de_core_news_lg")
 
-        start = time.time()
+def serial_main(subset_start=None, subset_end=None):
+    """
+    Executes the algorithm serially.
 
-        for i, doc in enumerate(
-            self.gerNLP.pipe(
-                self.df["text"],
-                disable=["ner", "tok2vec", "attribute_ruler"],
-                batch_size=batch_size,
-                n_process=n_process,
-            )
-        ):
+    The algorithm checks for the opinion towards energy politics and
+    whether the spoken content is attributed to the speaker or a third
+    person.
 
-            self._batch(i, doc)
-            if i % 500 == 0:
-                print(
-                    f"{i} of {self.df.shape[0]} documents parsed in {str(datetime.timedelta(seconds=int(time.time() - start)))}"
-                )
+    Parameters
+    ----------
+    subset_start : int, optional
+        Index value to start processing, by default None
+    subset_end : int, optional
+        Index value to finish processing, by default None
 
-                start = time.time()
+    Returns
+    -------
+    pd.DataFrame
+        Results of the algorithm concatenated with the original speeches
+        dataframe.
+    """
 
-            if i == self.df.shape[0]:
-                break
+    DF_AVAIL = os.path.exists(CONFIG["df_prep_pickle_path"])
+    if not DF_AVAIL:
+        df = prepare_data(ALL_KEYWORDS_EXTENDED)
+    else:
+        df = pd.read_pickle(CONFIG["df_prep_pickle_path"])
 
-        end_time = time.time()
+    if subset_start is not None and subset_end is not None:
+        df = df[subset_start:subset_end]
+    df.reset_index(inplace=True)
 
-        duration = end_time - start_time
-        self.protocol = (
-            "The algorithm processing duration was "
-            + str(round(duration / 60, 1))
-            + " minutes."
-        )
-        self.protocol += (
-            "\n" + str(self.keyword_counter) + " occurances of keywords were identified"
-        )
-        self.protocol += (
-            "\n"
-            + str(self.subtree_length_counter)
-            + " words within keywords' subtrees were checked."
-        )
-        self.protocol += (
-            "\n"
-            + str(self.ancestors_length_counter)
-            + " words within keywords' ancestors were checked."
-        )
-        self.protocol += (
-            "\n"
-            + str(self.third_person_counter)
-            + " keywords were used in statements attributed to somebody else by the speaker."
-        )
-        self.protocol += (
-            "\n" + str(self.negation_counter) + " keywords descriptions were negated."
-        )
-        self.protocol += (
-            "\n"
-            + str(self.score_neutral_counter)
-            + " descriptions of keywords were neutral."
-        )
-        self.protocol += (
-            "\n"
-            + str(self.score_negative_counter)
-            + " descriptions of keywords were negative."
-        )
-        self.protocol += (
-            "\n"
-            + str(self.score_positive_counter)
-            + " descriptions of keywords were positive."
-        )
+    gerNLP = spacy.load(CONFIG["spacy_language_model"])
+    docs = gerNLP.pipe(df["text"], disable=["ner", "attribute_ruler"])
+    ix = df["index"]
 
-        return self.df
+    results = []
+    for count, doc in enumerate(docs):
+
+        speech = Speech(ix[count], doc)
+        speech._process_doc()
+        results.append(speech)
+
+    df_result = pd.DataFrame([result.as_dict() for result in results])
+
+    assert not df_result.empty, "No results computed!"
+
+    df_full = pd.merge(
+        df, df_result, how="right", left_on="index", right_on="doc_index"
+    )
+
+    return df_full
+
+
+# -------------------------------< Main Start >-------------------------------#
+# Main is for debugging purposes
+if __name__ == "__main__":
+    results = serial_main()
