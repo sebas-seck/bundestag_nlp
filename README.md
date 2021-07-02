@@ -63,4 +63,4 @@ Overview of the new data source with all plenary protocols since 1949
 
 ### Notebook 07 - Timeline
 
-- Visualization of speeches related to energy politics, view result [here](https://htmlpreview.github.io/?https://github.com/sebas-seck/bundestag_nlp/blob/main/timeline_energy_politics_speeches.html)
+- Visualization of speeches related to energy politics, view result [here](https://htmlpreview.github.io/?https://github.com/sebas-seck/bundestag_nlp/blob/main/nb_07_energy_politics_timeline.html)
