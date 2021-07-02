@@ -53,23 +53,26 @@ party_colors = {
     "FDP": "yellow",
     "DIE LINKE.": "magenta",
     "PDS": "magenta",
-    "DRP/NR": "grey",
-    "KO": "grey",
-    "SSW": "grey",
-    "WAV": "grey",
-    "BHE": "grey",
-    "DPB": "grey",
-    "Fraktionslos": "grey",
-    "FU": "grey",
-    "FVP": "grey",
-    "BP": "grey",
-    "NR": "grey",
-    "DA": "grey",
-    "not found": "grey",
+    "Fraktionslos": "lightgrey",
+    "DRP/NR": "lightgrey",
+    "KO": "lightgrey",
+    "SSW": "lightgrey",
+    "WAV": "lightgrey",
+    "BHE": "lightgrey",
+    "DPB": "lightgrey",
+    "FU": "lightgrey",
+    "FVP": "lightgrey",
+    "BP": "lightgrey",
+    "NR": "lightgrey",
+    "DA": "lightgrey",
+    "not found": "lightgrey",
 }
 
 # %%
 df_new.dropna(subset=["faction_abbreviation"], inplace=True)
+
+# %%
+df_new["first_name"]
 
 # %%
 fig = px.scatter(
@@ -81,8 +84,10 @@ fig = px.scatter(
     size="speech_length",
     opacity=0.5,
     title="Speeches on Energy Politics",
-    hover_data=["last_name", "faction_id"],
+    custom_data=["first_name", "last_name", "faction_name"],
+    labels={"faction_abbreviation": "Faction"},
 )
+fig.update_traces(hovertemplate="%{customdata[0]} %{customdata[1]}<br>%{customdata[2]}")
 fig.show()
 
 # %%
