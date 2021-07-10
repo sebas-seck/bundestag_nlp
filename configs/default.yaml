@@ -27,3 +27,23 @@ relevant_scoring_pos:
 #   - VAPP
 #   - VMPP
 #   - VVIZU
+party_colors:
+  CDU/CSU: black
+  SPD: red
+  Grüne: green
+  FDP: yellow
+  DIE LINKE.: magenta
+  PDS: magenta
+  Fraktionslos: lightgrey
+  DRP/NR: lightgrey
+  KO: lightgrey
+  SSW: lightgrey
+  WAV: lightgrey
+  BHE: lightgrey
+  DPB: lightgrey
+  FU: lightgrey
+  FVP: lightgrey
+  BP: lightgrey
+  NR: lightgrey
+  DA: lightgrey
+  not found: lightgrey

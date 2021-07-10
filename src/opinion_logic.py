@@ -8,7 +8,7 @@ import pandas as pd
 import spacy
 from textblob_de import TextBlobDE as TextBlob
 
-from src.data_prep import prepare_data
+from src.data_prep import prepare_speech_data
 from src.keywords import ANTI_NUCLEAR, CONSERVATIVE_ENERGY, NEUTRAL_ENERGY, PRO_NUCLEAR
 from src.utils import extend_topics, parse_config
 
@@ -239,7 +239,7 @@ def serial_main(subset_start=None, subset_end=None):
 
     DF_AVAIL = os.path.exists(CONFIG["df_prep_pickle_path"])
     if not DF_AVAIL:
-        df = prepare_data(ALL_KEYWORDS_EXTENDED)
+        df = prepare_speech_data(ALL_KEYWORDS_EXTENDED)
     else:
         df = pd.read_pickle(CONFIG["df_prep_pickle_path"])
 

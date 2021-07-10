@@ -3,6 +3,7 @@
 --extra-index-url https://github.com/explosion/spacy-models/releases//tag/de_dep_news_trf-3.0.0
 
 black
+dash
 de_core_news_lg
 de_core_news_sm
 de_dep_news_trf

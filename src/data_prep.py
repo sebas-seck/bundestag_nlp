@@ -10,7 +10,34 @@ from src.utils import parse_config
 CONFIG = parse_config()
 
 
-def prepare_data(filter_list):
+def prepare_full_df():
+    """
+    Prepares full dataframe.
+
+    Merges speeches, factions and politicians data.
+
+    Returns
+    -------
+    pd.DataFrame
+        Full dataframe for intended use.
+    """
+    df_speeches = pd.read_pickle(CONFIG["df_processed_pickle_path"])
+    df_faction = prepare_faction_data()
+    df = pd.merge(
+        df_speeches, df_faction, how="left", left_on="faction_id", right_on="faction_id"
+    )
+    df_politicians = prepare_politician_data()
+    df = pd.merge(
+        df,
+        df_politicians,
+        how="left",
+        on="politician_id",
+        suffixes=("_speech", "_master"),
+    )
+    return df
+
+
+def prepare_speech_data(filter_list):
     """
     Prepares Open Discourse speech data.
 
@@ -67,5 +94,68 @@ def prepare_data(filter_list):
     df["text"] = df["text"].apply(lambda x: _replace_whitespace(x))
 
     df.to_pickle(CONFIG["df_prep_pickle_path"])
+
+    return df
+
+
+def prepare_faction_data():
+    """
+    Prepares faction data.
+
+    - Renames columns
+    - Resets index
+
+    Returns
+    -------
+    pd.DataFrame
+        Prepares factions dataframe for intended use
+    """
+    df = pd.read_csv("data/open_discourse/factions.csv")
+    df.rename(
+        columns={
+            "id": "faction_id",
+            "abbreviation": "faction_abbreviation",
+            "fullName": "faction_name",
+        },
+        inplace=True,
+    )
+    df.index.rename("index", inplace=True)
+
+    return df
+
+
+def prepare_politician_data():
+    """
+    Prepares politician data.
+
+    - Renames columns
+    - Prepares full name column
+
+    Returns
+    -------
+    pd.DataFrame
+        Prepares politicians dataframe for intended use.
+    """
+    df = pd.read_csv("data/open_discourse/politicians.csv")
+    df.rename(
+        columns={
+            "id": "politician_id",
+            "firstName": "first_name",
+            "lastName": "last_name",
+            "birthPlace": "birth_place",
+            "birthCountry": "birth_country",
+            "birthDate": "birth_date",
+            "deathDate": "death_date",
+            "academicTitle": "academic_title",
+        },
+        inplace=True,
+    )
+
+    df["full_name"] = (
+        (df["academic_title"] + " ").fillna("")
+        + df["first_name"]
+        + " "
+        + df["last_name"]
+    )
 
     return df
