@@ -1,5 +1,5 @@
-df_prep_pickle_path: "data/df_prep.pkl"
-df_processed_pickle_path: "data/df_processed.pkl"
+processed_df_cache: "data/processed_df.pkl"
+use_cache: True
 spacy_language_model: de_core_news_lg
 # spacy_language_model: de_core_news_sm
 relevant_scoring_pos:
@@ -32,8 +32,9 @@ party_colors:
   SPD: red
   Grüne: green
   FDP: yellow
-  DIE LINKE.: magenta
   PDS: magenta
+  DIE LINKE.: magenta
+  AfD: lightblue
   Fraktionslos: lightgrey
   DRP/NR: lightgrey
   KO: lightgrey

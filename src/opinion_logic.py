@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import copy
-import os
+
+# import os
 import time
 
 import pandas as pd
+import numpy as np
 import spacy
 from textblob_de import TextBlobDE as TextBlob
 
-from src.data_prep import prepare_speech_data
 from src.keywords import ANTI_NUCLEAR, CONSERVATIVE_ENERGY, NEUTRAL_ENERGY, PRO_NUCLEAR
 from src.utils import extend_topics, parse_config
 
@@ -215,7 +216,57 @@ class Speech:
         self.duration = time.time() - start_time
 
 
-def serial_main(subset_start=None, subset_end=None):
+def scoring(df):
+    """
+    Applies opinion score logic.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe with results of parsed speech.
+
+    Returns
+    -------
+    pd.DataFrame
+        Dataframe with additional score columns
+    """
+    # Sets all children score columns to equal the parents' values
+    df["AN_sp"] = df["AN_s"]
+    df["AN_sa"] = df["AN_s"]
+
+    df["PN_sp"] = df["PN_s"]
+    df["PN_sa"] = df["PN_s"]
+
+    df["NE_sp"] = df["NE_s"]
+    df["NE_sa"] = df["NE_s"]
+
+    df["CE_sp"] = df["CE_s"]
+    df["CE_sa"] = df["CE_s"]
+
+    df["score"] = df["AN_s"] - df["PN_s"] - df["CE_s"]
+    df["score_p"] = df["AN_sp"] - df["PN_sp"] - df["CE_sp"]
+    df["score_a"] = df["AN_sa"] - df["PN_sa"] - df["CE_sa"]
+
+    surge_duration = 400
+    surge = 2 * -np.cos(1 / 400 * np.pi * np.arange(0, surge_duration)) + 3
+    surge_start = df.query("electoral_term==17 and session==94").index[0] - (
+        surge_duration / 2
+    )
+    surge_end = surge_start + surge_duration
+    weights = np.concatenate(
+        (np.ones(int(surge_start)), surge, np.ones(int(len(df) - surge_end)))
+    )
+    assert len(weights) == len(df), "Weights do not match df"
+
+    df["weight"] = weights
+    df["w_score"] = df["score"] / df["weight"]
+    df["w_score_p"] = df["score_p"] / df["weight"]
+    df["w_score_a"] = df["score_a"] / df["weight"]
+
+    return df
+
+
+def run_opinion_logic(df, subset_start=None, subset_end=None, compute_scores=True):
     """
     Executes the algorithm serially.
 
@@ -237,15 +288,9 @@ def serial_main(subset_start=None, subset_end=None):
         dataframe.
     """
 
-    DF_AVAIL = os.path.exists(CONFIG["df_prep_pickle_path"])
-    if not DF_AVAIL:
-        df = prepare_speech_data(ALL_KEYWORDS_EXTENDED)
-    else:
-        df = pd.read_pickle(CONFIG["df_prep_pickle_path"])
-
     if subset_start is not None and subset_end is not None:
         df = df[subset_start:subset_end]
-    df.reset_index(inplace=True)
+    df = df.reset_index()
 
     gerNLP = spacy.load(CONFIG["spacy_language_model"])
     docs = gerNLP.pipe(df["text"], disable=["ner", "attribute_ruler"])
@@ -262,14 +307,22 @@ def serial_main(subset_start=None, subset_end=None):
 
     assert not df_result.empty, "No results computed!"
 
-    df_full = pd.merge(
-        df, df_result, how="right", left_on="index", right_on="doc_index"
-    )
+    df = pd.merge(df, df_result, how="right", left_on="index", right_on="doc_index")
 
-    return df_full
+    if compute_scores:
+        print("Computing scores now")
+        df = scoring(df)
+        df.to_pickle(CONFIG["processed_df_cache"])
+        print(
+            f"Processed speeches incl. scores cached to {CONFIG['processed_df_cache']}"
+        )
+    else:
+        print("Speeches processed, no scores calculated -> results not cached")
+
+    return df
 
 
 # -------------------------------< Main Start >-------------------------------#
 # Main is for debugging purposes
 if __name__ == "__main__":
-    results = serial_main()
+    results = run_opinion_logic()

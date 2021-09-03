@@ -34,7 +34,7 @@ fig = px.scatter(
     size="speech_length",
     opacity=0.5,
     title="Speeches on Energy Politics",
-    custom_data=["full_name", "profession"],
+    custom_data=["full_name_speech", "profession"],
     labels={"faction_abbreviation": "Faction"},
 )
 fig.update_traces(hovertemplate="%{customdata[0]}<br>%{customdata[1]}")
@@ -42,11 +42,6 @@ fig.update_traces(hovertemplate="%{customdata[0]}<br>%{customdata[1]}")
 app.layout = html.Div(
     children=[
         html.H1(children="Timeline of Energy Politics"),
-        #     html.Div(
-        #         children="""
-        #     Dash: A web application framework for Python.
-        # """
-        #     ),
         dcc.Graph(id="timeline-bubbles-with-slider", figure=fig),
         dcc.RangeSlider(
             id=" range-slider",
@@ -56,16 +51,25 @@ app.layout = html.Div(
             step=1,
             marks={year: str(year) for year in list(range(1950, 2021, 5))},
         ),
-        html.Div(id="speech-drilldown", children="")
-        #     dcc.Textarea(
-        #     id='speech-drilldown',
-        #     # value='Textarea content initialized\nwith multiple lines of text',
-        #     value='',
-        #     style={'width': '100%', 'height': 300},
-        # ),
+        html.Div(
+            children=[
+                html.Div(
+                    id="politician-detail",
+                    children="",
+                    style={"width": "20%", "display": "inline-block"},
+                ),
+                # html.Div(
+                #     children=[speech]
+                # ),
+                html.Div(
+                    id="speech-drilldown",
+                    children="",
+                    style={"width": "80%", "display": "inline-block"},
+                ),
+            ]
+        ),
     ]
 )
-import random
 
 
 @app.callback(
@@ -76,7 +80,15 @@ def display_click_data(selectedData):
     if selectedData is None:
         return ""
     speech_index = selectedData["points"][0]["customdata"][0]
-    return f"{df.loc[speech_index, 'text']}"
+    # return f"{df.loc[speech_index, 'text']}"
+
+    return dcc.Markdown(
+        f"""
+### Plenarprotokoll {df.loc[speech_index, 'electoral_term']}/{df.loc[speech_index, 'session']}, {df.loc[speech_index, 'date']}
+#### {df.loc[speech_index, 'full_name_speech']} ({df.loc[speech_index, 'faction_abbreviation']})
+{df.loc[speech_index, 'text']}
+        """
+    )
 
 
 @app.callback(
@@ -92,7 +104,7 @@ def update_figure(range):
         size="speech_length",
         opacity=0.5,
         title=f"Speeches on Energy Politics (selected range {range[0]}-{range[1]})",
-        custom_data=["index", "full_name", "profession", "faction_name"],
+        custom_data=["index", "full_name_speech", "profession", "faction_name"],
         labels={"faction_abbreviation": "Faction"},
         category_orders={
             "faction_abbreviation": [
@@ -101,8 +113,8 @@ def update_figure(range):
                 "Grüne",
                 "FDP",
                 "DIE LINKE.",
-                "AfD",
                 "PDS",
+                "AfD",
                 "Fraktionslos",
                 "not found",
             ]
