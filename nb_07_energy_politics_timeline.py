@@ -19,76 +19,67 @@ import pandas as pd
 import plotly.express as px
 
 from src.utils import show, parse_config
+from src.data_prep import prepare_faction_data, prepare_politician_data
 
 CONFIG = parse_config()
 
 # %%
-df = pd.read_pickle(CONFIG["df_processed_pickle_path"])
-
-df_faction = pd.read_csv("data/open_discourse/factions.csv")
-df_faction.rename(
-    columns={
-        "id": "faction_id",
-        "abbreviation": "faction_abbreviation",
-        "fullName": "faction_name",
-    },
-    inplace=True,
-)
-df_faction.index.rename("index", inplace=True)
-
-# %%
+# speech df already fully processed
+df_speeches = pd.read_pickle(CONFIG["processed_df_cache"])
+df_faction = prepare_faction_data()
 df_faction
 
 # %%
-df_new = pd.merge(
-    df, df_faction, how="left", left_on="faction_id", right_on="faction_id"
+df = pd.merge(
+    df_speeches, df_faction, how="left", left_on="faction_id", right_on="faction_id"
 )
 
 
 # %%
-party_colors = {
-    "CDU/CSU": "black",
-    "SPD": "red",
-    "Grüne": "green",
-    "FDP": "yellow",
-    "DIE LINKE.": "magenta",
-    "PDS": "magenta",
-    "Fraktionslos": "lightgrey",
-    "DRP/NR": "lightgrey",
-    "KO": "lightgrey",
-    "SSW": "lightgrey",
-    "WAV": "lightgrey",
-    "BHE": "lightgrey",
-    "DPB": "lightgrey",
-    "FU": "lightgrey",
-    "FVP": "lightgrey",
-    "BP": "lightgrey",
-    "NR": "lightgrey",
-    "DA": "lightgrey",
-    "not found": "lightgrey",
-}
+df_politicians = prepare_politician_data()
+df_politicians
 
 # %%
-df_new.dropna(subset=["faction_abbreviation"], inplace=True)
+df = pd.merge(
+    df, df_politicians, how="left", on="politician_id", suffixes=("_speech", "_master")
+)
+df
 
 # %%
-df_new["first_name"]
+df = df.dropna(subset=["faction_abbreviation"])
 
 # %%
 fig = px.scatter(
-    df_new.query("w_score != 0"),
+    df.query("w_score != 0"),
     x="date",
     y="w_score",
     color="faction_abbreviation",
-    color_discrete_map=party_colors,
+    color_discrete_map=CONFIG["party_colors"],
     size="speech_length",
     opacity=0.5,
-    title="Speeches on Energy Politics",
-    custom_data=["first_name", "last_name", "faction_name"],
+    title=f"Speeches on Energy Politics",
+    custom_data=["index", "full_name_speech", "profession", "faction_name"],
     labels={"faction_abbreviation": "Faction"},
+    category_orders={
+        "faction_abbreviation": [
+            "SPD",
+            "CDU/CSU",
+            "Grüne",
+            "FDP",
+            "DIE LINKE.",
+            "AfD",
+            "PDS",
+            "Fraktionslos",
+            "not found",
+        ]
+    },
 )
-fig.update_traces(hovertemplate="%{customdata[0]} %{customdata[1]}<br>%{customdata[2]}")
+fig.update_traces(
+    hovertemplate="%{customdata[1]}<br>%{customdata[2]}<br>%{customdata[3]}"
+)
 fig.show()
 
 # %%
 fig.write_html("nb_07_energy_politics_timeline.html")
+
+# %%

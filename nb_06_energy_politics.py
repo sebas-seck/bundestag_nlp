@@ -13,20 +13,45 @@
 #     name: python3
 # ---
 
+# %% [markdown]
+#
+# # Score Calculation
+#
+# The score calculation is to be part of `run_opinion_logic()` after development through the flag `compute_scores`.
+
 # %%
+import os
 import pandas as pd
-from math import log
 import numpy as np
 
-from src.opinion_logic import serial_main
+from src.opinion_logic import run_opinion_logic, ALL_KEYWORDS_EXTENDED
 from src.utils import show, parse_config
+from src.data_prep import prepare_speech_data
 
 CONFIG = parse_config()
 
+
 # %%
 # %%time
-# df = serial_main(subset_start=20000, subset_end=20100)
-df = serial_main()
+
+
+def process():
+    print("Not using cached df, processing now")
+    df = prepare_speech_data(ALL_KEYWORDS_EXTENDED)
+    df = run_opinion_logic(df, compute_scores=False)
+    # df = run_opinion_logic(df, subset_start=20000, subset_end=20100)
+    return df
+
+
+if CONFIG["use_cache"]:
+    if os.path.exists(CONFIG["processed_df_cache"]):
+        print("Using cached, previously processed dataframe")
+        df = pd.read_pickle(CONFIG["processed_df_cache"])
+    else:
+        print("No cached data available")
+        df = process()
+else:
+    df = process()
 
 # %%
 # query df on focus area index 2009-2015 here!
@@ -93,9 +118,6 @@ df.plot.line(x="date", y="weight")
 df["w_score"] = df["score"] / df["weight"]
 df["w_score_p"] = df["score_p"] / df["weight"]
 df["w_score_a"] = df["score_a"] / df["weight"]
-
-# save the results for later
-df.to_pickle(CONFIG["df_processed_pickle_path"])
 
 # %% [markdown]
 # ### Descriptive Analysis of assigned Scores
