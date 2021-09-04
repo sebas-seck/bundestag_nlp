@@ -4,59 +4,56 @@
 #
 #    pip-compile --output-file=macos-py3.8-requirements.txt macos-py3.8-requirements.in
 #
---extra-index-url https://github.com/explosion/spacy-models/releases//tag/de_core_news_lg-3.0.0
---extra-index-url https://github.com/explosion/spacy-models/releases//tag/de_core_news_sm-3.0.0
---extra-index-url https://github.com/explosion/spacy-models/releases//tag/de_dep_news_trf-3.0.0
+--extra-index-url https://github.com/explosion/spacy-models/releases//tag/de_core_news_lg-3.1.0
+--extra-index-url https://github.com/explosion/spacy-models/releases//tag/de_core_news_sm-3.1.0
+--extra-index-url https://github.com/explosion/spacy-models/releases//tag/de_dep_news_trf-3.1.0
 
-anyio==2.2.0
+anyio==3.3.0
     # via jupyter-server
-appdirs==1.4.4
-    # via
-    #   black
-    #   virtualenv
 appnope==0.1.2
     # via
     #   ipykernel
     #   ipython
-argon2-cffi==20.1.0
+argon2-cffi==21.1.0
     # via
     #   jupyter-server
     #   notebook
-async-generator==1.10
-    # via nbclient
-attrs==20.3.0
+attrs==21.2.0
     # via
     #   jsonschema
     #   markdown-it-py
-    #   pandas-profiling
     #   pytest
     #   visions
 babel==2.9.1
     # via jupyterlab-server
 backcall==0.2.0
     # via ipython
-black==21.4b2
+backports.entry-points-selectable==1.1.0
+    # via virtualenv
+black==21.8b0
     # via -r macos-py3.8-requirements.in
-bleach==3.3.0
+bleach==4.1.0
     # via nbconvert
 blis==0.7.4
     # via
     #   spacy
     #   thinc
+bottleneck==1.3.2
+    # via visions
 brotli==1.0.9
     # via flask-compress
-catalogue==2.0.4
+catalogue==2.0.6
     # via
     #   spacy
     #   srsly
     #   thinc
-certifi==2020.12.5
+certifi==2021.5.30
     # via requests
-cffi==1.14.5
+cffi==1.14.6
     # via argon2-cffi
-cfgv==3.2.0
+cfgv==3.3.1
     # via pre-commit
-chardet==4.0.0
+charset-normalizer==2.0.4
     # via requests
 click==7.1.2
     # via
@@ -66,8 +63,6 @@ click==7.1.2
     #   pip-tools
     #   sacremoses
     #   typer
-confuse==1.4.0
-    # via pandas-profiling
 cycler==0.10.0
     # via matplotlib
 cymem==2.0.5
@@ -75,36 +70,36 @@ cymem==2.0.5
     #   preshed
     #   spacy
     #   thinc
-dash-core-components==1.16.0
+dash-core-components==1.17.1
     # via dash
-dash-html-components==1.1.3
+dash-html-components==1.1.4
     # via dash
-dash-table==4.11.3
+dash-table==4.12.0
     # via dash
-dash==1.20.0
+dash==1.21.0
     # via -r macos-py3.8-requirements.in
-dash_renderer==1.9.1
-    # via dash
-de-core-news-lg==3.0.0
+de-core-news-lg==3.1.0
     # via -r macos-py3.8-requirements.in
-de-core-news-sm==3.0.0
+de-core-news-sm==3.1.0
     # via -r macos-py3.8-requirements.in
-de-dep-news-trf==3.0.0
+de-dep-news-trf==3.1.0
     # via -r macos-py3.8-requirements.in
-decorator==4.4.2
-    # via
-    #   ipython
-    #   networkx
+debugpy==1.4.1
+    # via ipykernel
+decorator==5.0.9
+    # via ipython
 defusedxml==0.7.1
     # via nbconvert
-deprecation==2.1.0
-    # via jupyter-packaging
-distlib==0.3.1
+distlib==0.3.2
     # via virtualenv
 entrypoints==0.3
-    # via nbconvert
+    # via
+    #   jupyter-client
+    #   jupyterlab-server
+    #   nbconvert
 filelock==3.0.12
     # via
+    #   huggingface-hub
     #   transformers
     #   virtualenv
 fire==0.4.0
@@ -115,46 +110,49 @@ flask==2.0.1
     # via
     #   dash
     #   flask-compress
-funcy==1.15
+funcy==1.16
     # via pyldavis
 future==0.18.2
     # via
     #   dash
     #   pyldavis
-gensim==4.0.1
+gensim==4.1.0
     # via
     #   -r macos-py3.8-requirements.in
     #   pyldavis
 htmlmin==0.1.12
     # via pandas-profiling
+huggingface-hub==0.0.12
+    # via transformers
 icon-font-to-png==0.4.1
     # via stylecloud
-identify==2.2.4
+identify==2.2.13
     # via pre-commit
-idna==2.10
+idna==3.2
     # via
     #   anyio
     #   requests
-imagehash==4.2.0
+imagehash==4.2.1
     # via visions
 iniconfig==1.1.1
     # via pytest
-ipykernel==5.5.3
+ipykernel==6.3.1
     # via
     #   ipywidgets
     #   notebook
 ipython-genutils==0.2.0
     # via
+    #   ipykernel
+    #   ipywidgets
     #   jupyter-server
     #   nbformat
     #   notebook
-    #   traitlets
-ipython==7.23.0
+ipython==7.27.0
     # via
     #   ipykernel
     #   ipywidgets
     #   jupyterlab
-ipywidgets==7.6.3
+ipywidgets==7.6.4
     # via
     #   -r macos-py3.8-requirements.in
     #   pandas-profiling
@@ -181,13 +179,13 @@ joblib==1.0.1
     #   pyldavis
     #   sacremoses
     #   scikit-learn
-json5==0.9.5
+json5==0.9.6
     # via jupyterlab-server
 jsonschema==3.2.0
     # via
     #   jupyterlab-server
     #   nbformat
-jupyter-client==6.1.12
+jupyter-client==7.0.2
     # via
     #   ipykernel
     #   jupyter-server
@@ -203,37 +201,34 @@ jupyter-core==4.7.1
     #   nbformat
     #   notebook
     #   pandas-profiling
-jupyter-packaging==0.9.2
-    # via
-    #   jupyter-server
-    #   jupyterlab
-    #   jupyterlab-server
-jupyter-server==1.6.4
+jupyter-server==1.10.2
     # via
     #   jupyterlab
     #   jupyterlab-server
     #   nbclassic
 jupyterlab-pygments==0.1.2
     # via nbconvert
-jupyterlab-server==2.5.0
+jupyterlab-server==2.7.2
     # via jupyterlab
-jupyterlab-widgets==1.0.0
+jupyterlab-widgets==1.0.1
     # via ipywidgets
-jupyterlab==3.0.14
+jupyterlab==3.1.10
     # via -r macos-py3.8-requirements.in
-jupytext==1.11.1
+jupytext==1.11.5
     # via -r macos-py3.8-requirements.in
-kiwisolver==1.3.1
+kiwisolver==1.3.2
     # via matplotlib
-markdown-it-py==0.6.2
+markdown-it-py==1.1.0
     # via
     #   jupytext
     #   mdit-py-plugins
 markupsafe==2.0.1
     # via jinja2
 matplotlib-inline==0.1.2
-    # via ipython
-matplotlib==3.4.1
+    # via
+    #   ipykernel
+    #   ipython
+matplotlib==3.4.3
     # via
     #   -r macos-py3.8-requirements.in
     #   missingno
@@ -242,12 +237,14 @@ matplotlib==3.4.1
     #   seaborn
     #   stylecloud
     #   wordcloud
-mdit-py-plugins==0.2.6
-    # via markdown-it-py
-missingno==0.4.2
+mdit-py-plugins==0.2.8
+    # via jupytext
+missingno==0.5.0
     # via pandas-profiling
 mistune==0.8.4
     # via nbconvert
+multimethod==1.4
+    # via visions
 murmurhash==1.0.5
     # via
     #   preshed
@@ -255,11 +252,11 @@ murmurhash==1.0.5
     #   thinc
 mypy-extensions==0.4.3
     # via black
-nbclassic==0.2.7
+nbclassic==0.3.1
     # via jupyterlab
-nbclient==0.5.3
+nbclient==0.5.4
     # via nbconvert
-nbconvert==6.0.7
+nbconvert==6.1.0
     # via
     #   jupyter-server
     #   notebook
@@ -272,8 +269,10 @@ nbformat==5.1.3
     #   nbconvert
     #   notebook
 nest-asyncio==1.5.1
-    # via nbclient
-networkx==2.5.1
+    # via
+    #   jupyter-client
+    #   nbclient
+networkx==2.6.2
     # via visions
 nltk==3.6.2
     # via
@@ -281,16 +280,17 @@ nltk==3.6.2
     #   textblob
 nodeenv==1.6.0
     # via pre-commit
-notebook==6.3.0
+notebook==6.4.3
     # via
     #   nbclassic
     #   widgetsnbextension
 numexpr==2.7.3
     # via pyldavis
-numpy==1.20.2
+numpy==1.21.2
     # via
     #   -r macos-py3.8-requirements.in
     #   blis
+    #   bottleneck
     #   gensim
     #   imagehash
     #   matplotlib
@@ -306,15 +306,13 @@ numpy==1.20.2
     #   seaborn
     #   spacy
     #   thinc
-    #   torch
     #   transformers
     #   visions
     #   wordcloud
-packaging==20.9
+packaging==21.0
     # via
     #   bleach
-    #   deprecation
-    #   jupyter-packaging
+    #   huggingface-hub
     #   jupyterlab
     #   jupyterlab-server
     #   pytest
@@ -322,9 +320,9 @@ packaging==20.9
     #   transformers
 palettable==3.3.0
     # via stylecloud
-pandas-profiling[notebook]==2.11.0
+pandas-profiling[notebook]==3.0.0
     # via -r macos-py3.8-requirements.in
-pandas==1.2.4
+pandas==1.3.2
     # via
     #   -r macos-py3.8-requirements.in
     #   pandas-profiling
@@ -336,44 +334,48 @@ pandocfilters==1.4.3
     # via nbconvert
 parso==0.8.2
     # via jedi
-pathspec==0.8.1
+pathspec==0.9.0
     # via black
-pathy==0.5.2
+pathy==0.6.0
     # via spacy
-pep517==0.10.0
+pep517==0.11.0
     # via pip-tools
 pexpect==4.8.0
     # via ipython
-phik==0.11.2
+phik==0.12.0
     # via pandas-profiling
 pickleshare==0.7.5
     # via ipython
-pillow==8.2.0
+pillow==8.3.2
     # via
     #   icon-font-to-png
     #   imagehash
     #   matplotlib
     #   visions
     #   wordcloud
-pip-tools==6.1.0
+pip-tools==6.2.0
     # via -r macos-py3.8-requirements.in
-plotly==4.14.3
+platformdirs==2.3.0
+    # via
+    #   black
+    #   virtualenv
+plotly==5.3.1
     # via
     #   -r macos-py3.8-requirements.in
     #   dash
-pluggy==0.13.1
+pluggy==1.0.0
     # via pytest
-pre-commit==2.12.1
+pre-commit==2.15.0
     # via -r macos-py3.8-requirements.in
 preshed==3.0.5
     # via
     #   spacy
     #   thinc
-prometheus-client==0.10.1
+prometheus-client==0.11.0
     # via
     #   jupyter-server
     #   notebook
-prompt-toolkit==3.0.18
+prompt-toolkit==3.0.20
     # via ipython
 ptyprocess==0.7.0
     # via
@@ -383,12 +385,13 @@ py==1.10.0
     # via pytest
 pycparser==2.20
     # via cffi
-pydantic==1.7.4
+pydantic==1.8.2
     # via
     #   -r macos-py3.8-requirements.in
+    #   pandas-profiling
     #   spacy
     #   thinc
-pygments==2.8.1
+pygments==2.10.0
     # via
     #   ipython
     #   jupyterlab-pygments
@@ -399,11 +402,11 @@ pyparsing==2.4.7
     # via
     #   matplotlib
     #   packaging
-pyrsistent==0.17.3
+pyrsistent==0.18.0
     # via jsonschema
-pytest==6.2.3
+pytest==6.2.5
     # via -r macos-py3.8-requirements.in
-python-dateutil==2.8.1
+python-dateutil==2.8.2
     # via
     #   jupyter-client
     #   matplotlib
@@ -416,37 +419,39 @@ pywavelets==1.1.1
     # via imagehash
 pyyaml==5.4.1
     # via
-    #   confuse
     #   jupytext
+    #   pandas-profiling
     #   pre-commit
-pyzmq==22.0.3
+    #   transformers
+pyzmq==22.2.1
     # via
     #   jupyter-client
     #   jupyter-server
     #   notebook
-regex==2021.4.4
+regex==2021.8.28
     # via
     #   black
     #   nltk
     #   sacremoses
     #   transformers
-requests==2.25.1
+requests-unixsocket==0.2.0
+    # via jupyter-server
+requests==2.26.0
     # via
+    #   huggingface-hub
     #   icon-font-to-png
     #   jupyterlab-server
     #   pandas-profiling
-    #   smart-open
+    #   requests-unixsocket
     #   spacy
     #   transformers
-retrying==1.3.3
-    # via plotly
 sacremoses==0.0.45
     # via transformers
 scikit-learn==0.24.2
     # via
     #   pyldavis
     #   sklearn
-scipy==1.6.3
+scipy==1.7.1
     # via
     #   gensim
     #   imagehash
@@ -456,17 +461,16 @@ scipy==1.6.3
     #   pyldavis
     #   scikit-learn
     #   seaborn
-seaborn==0.11.1
+seaborn==0.11.2
     # via
     #   missingno
     #   pandas-profiling
-send2trash==1.5.0
+send2trash==1.8.0
     # via
     #   jupyter-server
     #   notebook
-six==1.15.0
+six==1.16.0
     # via
-    #   argon2-cffi
     #   bleach
     #   cycler
     #   fire
@@ -475,12 +479,11 @@ six==1.15.0
     #   jsonschema
     #   plotly
     #   python-dateutil
-    #   retrying
     #   sacremoses
     #   virtualenv
 sklearn==0.0
     # via pyldavis
-smart-open==3.0.0
+smart-open==5.2.1
     # via
     #   gensim
     #   pathy
@@ -488,11 +491,11 @@ sniffio==1.2.0
     # via anyio
 spacy-alignments==0.8.3
     # via spacy-transformers
-spacy-legacy==3.0.5
+spacy-legacy==3.0.8
     # via spacy
-spacy-transformers==1.0.2
+spacy-transformers==1.0.6
     # via de-dep-news-trf
-spacy==3.0.6
+spacy==3.1.2
     # via
     #   -r macos-py3.8-requirements.in
     #   de-core-news-lg
@@ -506,40 +509,42 @@ srsly==2.4.1
     #   thinc
 stylecloud==0.5.2
     # via -r macos-py3.8-requirements.in
-tangled-up-in-unicode==0.0.7
+tangled-up-in-unicode==0.1.0
     # via
     #   pandas-profiling
     #   visions
+tenacity==8.0.1
+    # via plotly
 termcolor==1.1.0
     # via fire
-terminado==0.9.4
+terminado==0.11.1
     # via
     #   jupyter-server
     #   notebook
-testpath==0.4.4
+testpath==0.5.0
     # via nbconvert
 textblob-de==0.4.3
     # via -r macos-py3.8-requirements.in
 textblob==0.15.3
     # via textblob-de
-thinc==8.0.3
+thinc==8.0.9
     # via spacy
-threadpoolctl==2.1.0
+threadpoolctl==2.2.0
     # via scikit-learn
 tinycss==0.4
     # via icon-font-to-png
-tokenizers==0.10.2
+tokenizers==0.10.3
     # via transformers
 toml==0.10.2
     # via
-    #   black
     #   jupytext
-    #   pep517
     #   pre-commit
     #   pytest
-tomlkit==0.7.0
-    # via jupyter-packaging
-torch==1.8.1
+tomli==1.2.1
+    # via
+    #   black
+    #   pep517
+torch==1.9.0
     # via spacy-transformers
 tornado==6.1
     # via
@@ -549,14 +554,15 @@ tornado==6.1
     #   jupyterlab
     #   notebook
     #   terminado
-tqdm==4.60.0
+tqdm==4.62.2
     # via
+    #   huggingface-hub
     #   nltk
     #   pandas-profiling
     #   sacremoses
     #   spacy
     #   transformers
-traitlets==5.0.5
+traitlets==5.1.0
     # via
     #   ipykernel
     #   ipython
@@ -569,21 +575,26 @@ traitlets==5.0.5
     #   nbconvert
     #   nbformat
     #   notebook
-transformers==4.5.1
+transformers==4.9.2
     # via spacy-transformers
 typer==0.3.2
     # via
     #   pathy
     #   spacy
-typing-extensions==3.10.0.0
-    # via torch
+typing-extensions==3.10.0.2
+    # via
+    #   black
+    #   huggingface-hub
+    #   pydantic
+    #   torch
 urllib3==1.26.6
     # via
     #   -r macos-py3.8-requirements.in
     #   requests
-virtualenv==20.4.4
+    #   requests-unixsocket
+virtualenv==20.7.2
     # via pre-commit
-visions[type_image_path]==0.6.0
+visions[type_image_path]==0.7.1
     # via pandas-profiling
 wasabi==0.8.2
     # via
@@ -593,10 +604,12 @@ wcwidth==0.2.5
     # via prompt-toolkit
 webencodings==0.5.1
     # via bleach
+websocket-client==1.2.1
+    # via jupyter-server
 werkzeug==2.0.1
     # via flask
-wheel==0.36.2
-    # via jupyter-packaging
+wheel==0.37.0
+    # via pip-tools
 widgetsnbextension==3.5.1
     # via ipywidgets
 wordcloud==1.8.1
