@@ -14,8 +14,8 @@ Python 3.8 environment set up with conda and pip-tools on MacOS.
 conda create -n bt python=3.8 -y
 conda activate bt
 pip install pip-tools
-pip-compile --output-file=macos-py3.8-requirements.txt macos-py3.8-requirements.in
-pip-sync macos-py3.8-requirements.txt
+pip-compile --output-file=macos-py3.8-requirements_bt.txt macos-py3.8-requirements_bt.in --resolver=backtracking
+pip-sync macos-py3.8-requirements_bt.txt
 jupyter labextension install jupyterlab-plotly@4.14.3
 ```
 
